@@ -1,12 +1,11 @@
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
+from .models import News
 
-
-# Create your views here.
 
 def index(request: HttpRequest) -> HttpResponse:
-    return HttpResponse("Hello, World!")
-
-
-def test(request: HttpRequest) -> HttpResponse:
-    return HttpResponse("Тестовая страница.")
+    # news = News.objects.order_by('-created_at')
+    news = News.objects.all()
+    return render(request=request,
+                  template_name='news/index.html',
+                  context={"news": news, "title": "Список новостей"})
