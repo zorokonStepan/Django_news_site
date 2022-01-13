@@ -1,6 +1,4 @@
 venv
 .idea
 .env
-mysite.mysite.__pycache__
-mysite.news.__pycache__
-mysite.news.migrations.__pycache__
+**/__pycache__
