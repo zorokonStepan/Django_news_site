@@ -12,7 +12,7 @@ def index(request: HttpRequest) -> HttpResponse:
 def get_category(request: HttpRequest, category_id: int) -> HttpResponse:
     news = News.objects.filter(category_id=category_id)
     # category = Category.objects.get(pk=category_id)
-    category = get_object_or_404(News, pk=category_id)
+    category = get_object_or_404(Category, pk=category_id)
     context = {"news": news, "category": category}
     return render(request=request, template_name='news/category.html', context=context)
 
