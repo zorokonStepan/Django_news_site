@@ -11,7 +11,7 @@ class News(models.Model):
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Обновлено")
     photo = models.ImageField(upload_to='photos/%Y/%m/%d', verbose_name="Фото", blank=True)
     is_published = models.BooleanField(default=True, verbose_name="Опубликовано?")
-    category = models.ForeignKey("Category", on_delete=models.PROTECT, null=True, verbose_name="Категория")
+    category = models.ForeignKey("Category", on_delete=models.PROTECT, verbose_name="Категория")
 
     def get_absolute_url(self):
         return reverse(viewname='view_news', kwargs={'news_id': self.pk})
@@ -39,3 +39,14 @@ class Category(models.Model):
         verbose_name = "Категория"
         verbose_name_plural = "Категории"
         ordering = ["title"]
+
+
+class Feedback(models.Model):
+    name = models.CharField(max_length=150, db_index=True, verbose_name="Имя")
+    contact = models.CharField(max_length=150, blank=True, verbose_name="Контактные данные")
+    message = models.TextField(verbose_name="Отзыв")
+
+    class Meta:
+        verbose_name = "Отзыв"
+        verbose_name_plural = "Отзывы"
+        ordering = ["name"]

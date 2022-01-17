@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Отправить отзыв :: {{ block.super }}
+{% endblock %}
+
+{% block sidebar %}
+{% include 'inc/_sidebar.html' %}
+{% endblock %}
+
+{% block content %}
+
+<h1>Отправить отзыв</h1>
+
+<form action="{% url 'feedback' %}" method="post">
+    {% csrf_token %}
+
+    <!--    var1 auto-->
+    {{ form.as_p }}
+
+    <button type="submit" class="btn btn-primary btn-block">Отправить отзыв</button>
+
+</form>
+
+{% endblock %}
