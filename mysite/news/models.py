@@ -13,8 +13,10 @@ class News(models.Model):
     is_published = models.BooleanField(default=True, verbose_name="Опубликовано?")
     category = models.ForeignKey("Category", on_delete=models.PROTECT, verbose_name="Категория")
 
+    # def get_absolute_url(self):
+    #     return reverse(viewname='view_news', kwargs={'news_id': self.pk})
     def get_absolute_url(self):
-        return reverse(viewname='view_news', kwargs={'news_id': self.pk})
+        return reverse(viewname='view_news', kwargs={'pk': self.pk})
 
     def __str__(self):
         return self.title
@@ -45,6 +47,9 @@ class Feedback(models.Model):
     name = models.CharField(max_length=150, db_index=True, verbose_name="Имя")
     contact = models.CharField(max_length=150, blank=True, verbose_name="Контактные данные")
     message = models.TextField(verbose_name="Отзыв")
+
+    def get_absolute_url(self):
+        return reverse(viewname='home')
 
     class Meta:
         verbose_name = "Отзыв"

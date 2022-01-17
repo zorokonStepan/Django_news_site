@@ -1,46 +1,95 @@
-from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render, get_object_or_404, redirect
-from .models import News, Category, Feedback
-from .forms import NewsForm, FeedbackForm
+from django.urls import reverse_lazy
+from django.views.generic import ListView, DetailView, CreateView
+
+from .forms import NewsForm, FeedbackWithForm
+from .models import News, Category
 
 
-def index(request: HttpRequest) -> HttpResponse:
-    news = News.objects.all()
-    context = {"news": news, "title": "Список новостей"}
-    return render(request=request, template_name='news/index.html', context=context)
+# class HomeNews(ListView) аналог def index(request: HttpRequest) -> HttpResponse:
+class HomeNews(ListView):
+    # откуда получить данные
+    model = News  # аналог news = News.objects.all()
+
+    # если хотим переопределить класс, то:
+    template_name = 'news/home_news_list.html'
+    context_object_name = 'news'
+
+    # extra_context - для статических данных
+    # extra_context = {'title': 'Главная'}
+
+    # def get_context_data - для динамических данных
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Главная страница'
+        return context
+
+    # фильтруем вывод данных
+    def get_queryset(self):
+        return News.objects.filter(is_published=True)
 
 
-def get_category(request: HttpRequest, category_id: int) -> HttpResponse:
-    news = News.objects.filter(category_id=category_id)
-    # category = Category.objects.get(pk=category_id)
-    category = get_object_or_404(Category, pk=category_id)
-    context = {"news": news, "category": category}
-    return render(request=request, template_name='news/category.html', context=context)
+# def index(request: HttpRequest) -> HttpResponse:
+#     news = News.objects.all()
+#     context = {"news": news, "title": "Список новостей"}
+#     return render(request=request, template_name='news/index.html', context=context)
+
+class NewsByCategory(ListView):
+    model = News
+    template_name = 'news/home_news_list.html'
+    context_object_name = 'news'
+
+    # allow_empty = False
+
+    def get_queryset(self):
+        return News.objects.filter(category_id=self.kwargs['category_id'], is_published=True)
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = Category.objects.get(pk=self.kwargs['category_id'])
+        return context
 
 
-def view_news(request: HttpRequest, news_id: int) -> HttpResponse:
-    # news_item = News.objects.get(pk=news_id)
-    news_item = get_object_or_404(News, pk=news_id)
-    context = {"news_item": news_item}
-    return render(request=request, template_name='news/view_news.html', context=context)
+# def get_category(request: HttpRequest, category_id: int) -> HttpResponse:
+#     news = News.objects.filter(category_id=category_id)
+#     # category = Category.objects.get(pk=category_id)
+#     category = get_object_or_404(Category, pk=category_id)
+#     context = {"news": news, "category": category}
+#     return render(request=request, template_name='news/category.html', context=context)
+
+class ViewNews(DetailView):
+    model = News
+    # pk_url_kwarg = 'news_id'
+    # template_name = 'news/news_detail.html'
+    context_object_name = 'news_item'
+
+
+# def view_news(request: HttpRequest, news_id: int) -> HttpResponse:
+#     # news_item = News.objects.get(pk=news_id)
+#     news_item = get_object_or_404(News, pk=news_id)
+#     context = {"news_item": news_item}
+#     return render(request=request, template_name='news/view_news.html', context=context)
 
 
 # связ с формами
-def add_news(request: HttpRequest) -> HttpResponse:
-    if request.method == 'POST':
-        form = NewsForm(request.POST)
-        if form.is_valid():
-            # print(form.cleaned_data)
-            # News.objects.create(**form.cleaned_data)
-            news = form.save()
-            # return redirect(news)
-            return redirect('add_news')
-    else:
-        form = NewsForm()
-    return render(request=request, template_name='news/add_news.html', context={'form': form})
+
+class CreateNews(CreateView):
+    form_class = NewsForm
+    template_name = 'news/add_news.html'
+    # success_url = reverse_lazy('home')
 
 
-# # не связ с формами
+# def add_news(request: HttpRequest) -> HttpResponse:
+#     if request.method == 'POST':
+#         form = NewsForm(request.POST)
+#         if form.is_valid():
+#             form.save()
+#             return redirect('add_news')
+#     else:
+#         form = NewsForm()
+#     return render(request=request, template_name='news/add_news.html', context={'form': form})
+
+
+# не связ с формами
 # def add_news(request: HttpRequest) -> HttpResponse:
 #     if request.method == 'POST':
 #         form = NewsForm(request.POST)
@@ -53,22 +102,19 @@ def add_news(request: HttpRequest) -> HttpResponse:
 #         form = NewsForm()
 #     return render(request=request, template_name='news/add_news.html', context={'form': form})
 
+
 # не связ с формами
-def feedback(request: HttpRequest) -> HttpResponse:
-    if request.method == 'POST':
-        form = FeedbackForm(request.POST)
-        if form.is_valid():
-            Feedback.objects.create(**form.cleaned_data)
-            return redirect('home')
-    else:
-        form = FeedbackForm()
-    return render(request=request, template_name='news/feedback.html', context={'form': form})
+
+
+class CreateFeedback(CreateView):
+    form_class = FeedbackWithForm
+    template_name = 'news/feedback.html'
 
 # def feedback(request: HttpRequest) -> HttpResponse:
 #     if request.method == 'POST':
 #         form = FeedbackForm(request.POST)
 #         if form.is_valid():
-#             form.save()
+#             Feedback.objects.create(**form.cleaned_data)
 #             return redirect('home')
 #     else:
 #         form = FeedbackForm()
