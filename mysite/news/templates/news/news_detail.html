@@ -9,6 +9,7 @@
 {% endblock %}
 
 {% block content %}
+{{ news_item.add_count_view }}
 <div class="card mb-3">
     <div class="card-header">
         Категория: <a href="{{ news_item.category.get_absolute_url }}">{{ news_item.category }}</a>
@@ -22,6 +23,8 @@
     </div>
     <div class="card-footer text-muted">
         Опубликована {{ news_item.created_at|timesince }} назад
+        <br>
+        Количество просмотров: {{ news_item.show_count_view }}
     </div>
 </div>
 {% endblock %}

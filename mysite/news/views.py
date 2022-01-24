@@ -1,18 +1,37 @@
-from django.urls import reverse_lazy
+# from django.db.models import F
+# from django.urls import reverse_lazy
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core import paginator
+from django.shortcuts import render
 from django.views.generic import ListView, DetailView, CreateView
 
 from .forms import NewsForm, FeedbackWithForm
 from .models import News, Category
 
+from .utils import MyMixin
 
-# class HomeNews(ListView) аналог def index(request: HttpRequest) -> HttpResponse:
-class HomeNews(ListView):
+from django.core.paginator import Paginator
+
+
+def test(request):
+    objects = ['john1', 'paul2', 'george3', 'ringo4', 'john5', 'paul6', 'george7']
+    paginator = Paginator(objects, 2)
+    page_num = request.GET.get('page', 1)
+    page_objects = paginator.get_page(page_num)
+    return render(request, 'news/test.html', {'page_obj': page_objects})
+
+
+class HomeNews(ListView, MyMixin):
+    # class HomeNews(ListView) аналог def index(request: HttpRequest) -> HttpResponse:
+
     # откуда получить данные
     model = News  # аналог news = News.objects.all()
 
     # если хотим переопределить класс, то:
     template_name = 'news/home_news_list.html'
     context_object_name = 'news'
+    mixin_prop = 'hello world'
+    paginate_by = 1
 
     # extra_context - для статических данных
     # extra_context = {'title': 'Главная'}
@@ -20,12 +39,13 @@ class HomeNews(ListView):
     # def get_context_data - для динамических данных
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['title'] = 'Главная страница'
+        context['title'] = self.get_upper('Главная страница')
+        context['mixin_prop'] = self.get_prop()
         return context
 
     # фильтруем вывод данных
     def get_queryset(self):
-        return News.objects.filter(is_published=True)
+        return News.objects.filter(is_published=True).select_related('category')
 
 
 # def index(request: HttpRequest) -> HttpResponse:
@@ -33,19 +53,20 @@ class HomeNews(ListView):
 #     context = {"news": news, "title": "Список новостей"}
 #     return render(request=request, template_name='news/index.html', context=context)
 
-class NewsByCategory(ListView):
+class NewsByCategory(ListView, MyMixin):
     model = News
     template_name = 'news/home_news_list.html'
     context_object_name = 'news'
+    paginate_by = 1
 
     # allow_empty = False
 
     def get_queryset(self):
-        return News.objects.filter(category_id=self.kwargs['category_id'], is_published=True)
+        return News.objects.filter(category_id=self.kwargs['category_id'], is_published=True).select_related('category')
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['title'] = Category.objects.get(pk=self.kwargs['category_id'])
+        context['title'] = self.get_upper(Category.objects.get(pk=self.kwargs['category_id']))
         return context
 
 
@@ -72,10 +93,13 @@ class ViewNews(DetailView):
 
 # связ с формами
 
-class CreateNews(CreateView):
+class CreateNews(LoginRequiredMixin, CreateView):
     form_class = NewsForm
     template_name = 'news/add_news.html'
     # success_url = reverse_lazy('home')
+
+    login_url = '/admin/'
+    # raise_exception = True
 
 
 # def add_news(request: HttpRequest) -> HttpResponse:
