@@ -1,9 +1,12 @@
 from django.urls import path
 
-from news.views import HomeNews, NewsByCategory, ViewNews, CreateNews, CreateFeedback, test
+from news.views import HomeNews, NewsByCategory, ViewNews, CreateNews, CreateFeedback, test, register, login
+
 # index, get_category, view_news, add_news, feedback,
 
 urlpatterns = [
+    path('register/', register, name='register'),
+    path('login/', login, name='login'),
     path('test/', test, name='test'),
     # path('', index, name="home"),
     path('', HomeNews.as_view(), name="home"),
