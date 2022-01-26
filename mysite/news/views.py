@@ -1,17 +1,18 @@
 # from django.db.models import F
 # from django.urls import reverse_lazy
+from django.contrib.auth import login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 # from django.core import paginator
 from django.shortcuts import render, redirect
 from django.views.generic import ListView, DetailView, CreateView
 
-from .forms import NewsForm, FeedbackWithForm, UserRegisterForm
+from .forms import NewsForm, FeedbackWithForm, UserRegisterForm, UserLoginForm
 from .models import News, Category
 
 from .utils import MyMixin
 
 from django.core.paginator import Paginator
-from django.contrib.auth.forms import UserCreationForm
+# from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 
 
@@ -20,8 +21,9 @@ def register(request):
         form = UserRegisterForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, "Вы успешно зарегистрированны")
-            return redirect('login')
+            user = messages.success(request, "Вы успешно зарегистрированны")
+            login(request, user)
+            return redirect('home')
         else:
             messages.error(request, "Ошибка регистрации")
     else:
@@ -29,8 +31,21 @@ def register(request):
     return render(request=request, template_name='news/register.html', context={"form": form})
 
 
-def login(request):
-    return render(request, 'news/login.html')
+def user_login(request):
+    if request.method == 'POST':
+        form = UserLoginForm(data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            return redirect('home')
+    else:
+        form = UserLoginForm()
+    return render(request, 'news/login.html', context={"form": form})
+
+
+def user_logout(request):
+    logout(request)
+    return redirect('login')
 
 
 def test(request):
@@ -51,7 +66,7 @@ class HomeNews(ListView, MyMixin):
     template_name = 'news/home_news_list.html'
     context_object_name = 'news'
     mixin_prop = 'hello world'
-    paginate_by = 1
+    paginate_by = 2
 
     # extra_context - для статических данных
     # extra_context = {'title': 'Главная'}
@@ -77,7 +92,7 @@ class NewsByCategory(ListView, MyMixin):
     model = News
     template_name = 'news/home_news_list.html'
     context_object_name = 'news'
-    paginate_by = 1
+    paginate_by = 2
 
     # allow_empty = False
 

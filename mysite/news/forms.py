@@ -1,12 +1,17 @@
 import re
-from cProfile import label
 
 from django import forms
 from django.core.exceptions import ValidationError
 
 from .models import News, Category, Feedback
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
+
+
+class UserLoginForm(AuthenticationForm):
+    username = forms.CharField(label="Имя пользователя",
+                               widget=forms.TextInput(attrs={"class": "form-control", "autocomplete": "off"}))
+    password = forms.CharField(label="Пароль", widget=forms.PasswordInput(attrs={"class": "form-control"}))
 
 
 class UserRegisterForm(UserCreationForm):
