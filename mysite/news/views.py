@@ -1,19 +1,18 @@
 # from django.db.models import F
 # from django.urls import reverse_lazy
+# from django.contrib.auth.forms import UserCreationForm
+# from django.core import paginator
+from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
-# from django.core import paginator
 from django.shortcuts import render, redirect
 from django.views.generic import ListView, DetailView, CreateView
 
-from .forms import NewsForm, FeedbackWithForm, UserRegisterForm, UserLoginForm
+from mysite.settings import EMAIL_HOST_USER
+from .forms import NewsForm, FeedbackWithForm, UserRegisterForm, UserLoginForm, ContactForm
 from .models import News, Category
-
 from .utils import MyMixin
-
-from django.core.paginator import Paginator
-# from django.contrib.auth.forms import UserCreationForm
-from django.contrib import messages
+from django.core.mail import send_mail
 
 
 def register(request):
@@ -48,12 +47,23 @@ def user_logout(request):
     return redirect('login')
 
 
-def test(request):
-    objects = ['john1', 'paul2', 'george3', 'ringo4', 'john5', 'paul6', 'george7']
-    paginator = Paginator(objects, 2)
-    page_num = request.GET.get('page', 1)
-    page_objects = paginator.get_page(page_num)
-    return render(request, 'news/test.html', {'page_obj': page_objects})
+def send_email(request):
+    if request.method == 'POST':
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            mail = send_mail(subject=form.cleaned_data['subject'],
+                             message=form.cleaned_data['content'],
+                             from_email=EMAIL_HOST_USER,
+                             recipient_list=[EMAIL_HOST_USER],
+                             fail_silently=False)
+            if mail:
+                messages.success(request, "Письмо отправлено")
+                return redirect('send_email')
+            else:
+                messages.error(request, 'Ошибка отправки')
+    else:
+        form = ContactForm()
+    return render(request=request, template_name='news/send_email.html', context={"form": form})
 
 
 class HomeNews(ListView, MyMixin):

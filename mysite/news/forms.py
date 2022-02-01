@@ -8,6 +8,13 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 
 
+class ContactForm(forms.Form):
+    subject = forms.CharField(
+        label="Тема", widget=forms.TextInput(attrs={"class": "form-control", "autocomplete": "off"}))
+    content = forms.CharField(
+        label="Текст", widget=forms.Textarea(attrs={"class": "form-control", "autocomplete": "off", "rows": 5}))
+
+
 class UserLoginForm(AuthenticationForm):
     username = forms.CharField(label="Имя пользователя",
                                widget=forms.TextInput(attrs={"class": "form-control", "autocomplete": "off"}))
